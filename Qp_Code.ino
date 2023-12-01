@@ -1,21 +1,23 @@
 #include <Servo.h>
 #define MAX_ANGLE 60
-#define FRET_ANGLE 100
+#define FRET_ANGLE 140
+#define FRET_START 180
 
 int interrupt[6] = {2,3,18,19,20,21};
 int buttons[4] = {22,24,26,28};
-int buttonsState[4] = {0,0,0,0};
+int buttonsName[4] = {0,2,4,6};
+int buttonsState[4] = {};
 Servo servoA,servoB,servoC,servoD,servoE,servoF;
 Servo fret1,fret2,fret3,fret4,fret5,fret6,fret7,fret8;
 Servo servoArray[6] = {servoA,servoB,servoC,servoD,servoE,servoF};
 Servo servoNotes[8] = {fret1,fret2,fret3,fret4,fret5,fret6,fret7,fret8};
 int servoState[6] = {0,0,0,0,0,0};
-const int signalin = 9;
-int interruptNumber = 0;
+//const int signalin = 9;
+//int interruptNumber = 0;
 unsigned long debounce = 100;     // Debounce delay for cleaner interrupt input
 unsigned long buttonStartTime = 0;// Record button start time
 
-void interruptdetected(){
+/*void interruptdetected(){
   if (millis() - buttonStartTime < debounce) { // Debounce
     return;
   }
@@ -24,7 +26,7 @@ void interruptdetected(){
   Serial.print("Interrupt number: ");
   Serial.println(interruptNumber);
   sendServo(&servoF);
-}
+}*/
 void sendServo(Servo* serv){
     Serial.println(serv->read());
     if(serv->read() == 0){
@@ -104,11 +106,13 @@ void interrupterF(){
   Serial.print("Moving F servo");
   sendServo(&servoF);
 }
-void sendFret(Servo *serv){
+void sendFret(Servo *serv, Servo* serv2){
   if(serv->read() == 0){
       serv->write(FRET_ANGLE);
+      serv2->write(180 - FRET_ANGLE);
    }else{
-      serv->write(0);
+      serv->write(FRET_START);
+      serv2->write(180);
    }
 }
 void setup() {
@@ -122,11 +126,10 @@ void setup() {
   }
   /*pinMode(signalin, INPUT_PULLUP);
   attachInterrupt(digitalPinToInterrupt(signalin), interruptdetected, FALLING);*/
-  for(int i = 0; i < (sizeof(servoNotes)/sizeof(servoNotes[0]));i+=2){
-    servoArray[i].attach(i+10);
-    servoArray[i+1].attach(i+10);
-    servoArray[i].write(0);
-    Serial.println(i);
+  for(int i = 0; i < (sizeof(servoNotes)/sizeof(servoNotes[0]));i++){
+    servoNotes[i].attach(i+22);
+    servoArray[i].write(FRET_START);
+    Serial.println(i+22);
   } 
   //TODO initialize all of the servos for the notes.
   int arr[6] = {0,0,1,0,0,1};
@@ -151,7 +154,7 @@ void loop() {
   for(int i = 0; i < 4;i++){
     buttonsState[i] = digitalRead(buttons[i]);
     if(buttonsState[i] == 1){
-      sendFret(servoNotes[i*2]);
+      sendFret(&servoNotes[buttonsName[i]],&servoNotes[buttonsName[i]+1]);
     }
   }
    
