@@ -6,14 +6,65 @@ int fretArrLen = sizeof(fretServos) / sizeof(fretServos[0]);
 
 Servo E, A, D, G, B, E2;
 Servo stringServos[6] = {E, A, D, G, B, E2};
+int stringArrLen = sizeof(stringServos) / sizeof(stringServos[0]);
+
+String notes[][5] = {{"D2", "D2", "D2", "D2", ""}, {"D2", "D2", "D2", "D2", "D2"}, 
+                    {"D2", "D2", "D2", "D2", ""}, {"D2", "D2", "D2", "D2", "D2"},
+                    {"D2", "D2", "D2", "D2", ""}, {"D2", "D2", "D2", "A1", "C2"}, // end intro
+                    
+                    {"D2", "D2", "D2", "E2", ""}, {"F2", "F2", "F2", "G2", ""},
+                    {"E2", "E2", "D2", "C2", ""}, {"C2", "D2", "A1", "C2", ""}, // end part 1
+                    {"D2", "D2", "D2", "E2", ""}, {"F2", "F2", "F2", "G2", ""},
+                    {"E2", "E2", "D2", "C2", ""}, {"D2", "A1", "C2", "", ""}, // end part 2
+                    {"D2", "D2", "D2", "F2", ""}, {"G2", "G2", "G2", "A2", ""},
+                    {"A#2", "A#2", "A2", "G2", ""}, {"A2", "D2", "D2", "E2", ""},
+                    {"F2", "F2", "G2", "", ""}, {"A2", "D2", "D2", "F2", ""},
+                    {"E2", "E2", "F2", "D2", ""}, {"E2", "A1", "C2", "", ""}, // end part 3
+                    
+                    {"D2", "D2", "D2", "E2", ""}, {"F2", "F2", "F2", "G2", ""},
+                    {"E2", "E2", "D2", "C2", ""}, {"C2", "D2", "A1", "C2", ""}, // end part 1
+                    {"D2", "D2", "D2", "E2", ""}, {"F2", "F2", "F2", "G2", ""},
+                    {"E2", "E2", "D2", "C2", ""}, {"D2", "A1", "C2", "", ""}, // end part 2
+                    {"D2", "D2", "D2", "F2", ""}, {"G2", "G2", "G2", "A2", ""},
+                    {"A#2", "A#2", "A2", "G2", ""}, {"A2", "D2", "D2", "E2", ""},
+                    {"F2", "F2", "G2", "", ""}, {"A2", "D2", "D2", "F2", ""},
+                    {"E2", "E2", "F2", "D2", ""}, {"E2", "A1", "C2", "", ""}}; // end part 3
+
+int durations[][5] = {{4, 8, 4, 8, 0}, {4, 8, 8, 8, 8}, 
+                   {4, 8, 4, 8, 0}, {4, 8, 8, 8, 8},
+                   {4, 8, 4, 8, 0}, {4, 8, 8, 8, 8}, // end intro
+                   
+                   {4, 4, 8, 8, 0}, {4, 4, 8, 8, 0},
+                   {4, 4, 8, 8, 0}, {8, 3, 8, 8, 0}, // end part 1
+                   {4, 4, 8, 8, 0}, {4, 4, 8, 8, 0},
+                   {4, 4, 8, 8, 0}, {2, 8, 8, 0, 0}, // end part 2
+                   {4, 4, 8, 8, 0}, {4, 4, 8, 8, 0},
+                   {4, 4, 8, 8, 0}, {8, 3, 8, 8, 0},
+                   {4, 4, 4, 0, 0}, {8, 3, 8, 8, 0},
+                   {4, 4, 8, 8, 0}, {2, 8, 8, 0, 0}, // end part 3
+                   
+                   {4, 4, 8, 8, 0}, {4, 4, 8, 8, 0},
+                   {4, 4, 8, 8, 0}, {8, 3, 8, 8, 0}, // end part 1
+                   {4, 4, 8, 8, 0}, {4, 4, 8, 8, 0},
+                   {4, 4, 8, 8, 0}, {2, 8, 8, 0, 0}, // end part 2
+                   {4, 4, 8, 8, 0}, {4, 4, 8, 8, 0},
+                   {4, 4, 8, 8, 0}, {8, 3, 8, 8, 0},
+                   {4, 4, 4, 0, 0}, {8, 3, 8, 8, 0},
+                   {4, 4, 8, 8, 0}, {2, 8, 8, 0, 0}}; // end part 3
+
+const int BPM = 180;
+const int numMeasures = sizeof(notes)/sizeof(notes[0]);
+const int measureLen = sizeof(durations[0])/sizeof(durations[0][0]);
+int measureCount = 0;
+int noteCount = 0;
 
 int fretAngle = 80;
-int stringAngle = 30;
+int stringAngle = 40;
 
-int buttonPin1 = 10;
-int buttonPin2 = 11;
-int buttonPin3 = 12;
-int buttonPin4 = 13;
+int buttonPin1 = 34;
+int buttonPin2 = 35;
+int buttonPin3 = 36;
+int buttonPin4 = 37;
 
 void setup() {
   Serial.begin(9600);
@@ -24,6 +75,11 @@ void setup() {
     }else{
       fretServos[i].write(0);
     }
+  }
+
+  for(int i = 0; i < stringArrLen; i++){
+    stringServos[i].attach(53-i);
+    stringServos[i].write(5);
   }
 
   pinMode(buttonPin1,INPUT);
@@ -39,13 +95,32 @@ void loop() {
   int buttonState4 = digitalRead(buttonPin4);
   
   if(buttonState1 == 1){
-      pressFret(&S1L, &S1R);
+      //pressFret(&S1L, &S1R);
+      playString(&E);
   }if(buttonState2 == 1){
-      pressFret(&S2L, &S2R);
+      //pressFret(&S2L, &S2R);
+      playString(&A);
   }if(buttonState3 == 1){
-      pressFret(&S3L, &S3R);
+      //pressFret(&S3L, &S3R);
+      playString(&D);
   }if(buttonState4 == 1){
-      pressFret(&S4L, &S4R);
+      //pressFret(&S4L, &S4R);
+  }
+
+  int noteNum = noteToNum(notes[measureCount][noteCount]);
+  int noteDuration = durationToTime(durations[measureCount][noteCount]);
+
+  Serial.println(noteNum);
+  Serial.println(noteDuration);
+  Serial.println();
+
+  playNote(noteNum, noteDuration);
+
+  noteCount++;
+  if(noteCount >= measureLen || durations[measureCount][noteCount] == 0) {
+    measureCount++;
+    if(measureCount >= numMeasures) measureCount = 6;
+    noteCount = 0;
   }
   
   Serial.print("Buttonstate1 is ");
@@ -75,8 +150,20 @@ void loop() {
   Serial.print("S4R is ");
   Serial.println(S4R.read());
   Serial.println();
-  
-  delay(500);
+
+  Serial.print("E is ");
+  Serial.println(E.read());
+  Serial.print("A is ");
+  Serial.println(A.read());
+  Serial.print("D is ");
+  Serial.println(D.read());
+  Serial.print("G is ");
+  Serial.println(G.read());
+  Serial.print("B is ");
+  Serial.println(B.read());
+  Serial.print("E2 is ");
+  Serial.println(E2.read());
+  Serial.println();
 }
 
 void playNote(int note, int duration){
@@ -84,8 +171,8 @@ void playNote(int note, int duration){
   int string = note/5;
 
   if(fret > 0) pressFret(&fretServos[fret*2], &fretServos[fret*2+1]);
-  playString(&stringServos[string]);
   delay(duration);
+  playString(&stringServos[string]);
   if(fret > 0) pressFret(&fretServos[fret*2], &fretServos[fret*2+1]);
 }
 
@@ -100,10 +187,10 @@ void pressFret(Servo *SL, Servo* SR){
 }
 
 void playString(Servo *string){
-  if (string->read() == 0){
+  if (string->read() == 5){
     string->write(stringAngle);
   }else{
-    string->write(0);
+    string->write(5);
   }
 }
 
@@ -142,4 +229,11 @@ int noteToNum(String note){
   }
 
   return num < 19 ? num : num+1;
+}
+
+int durationToTime(int duration){
+  float BPS = BPM / 60.0;
+  int fullDuration = 4000 / BPS;
+  float actualDuration = 1 / (float) duration;
+  return duration == 3 ? 750 : fullDuration * actualDuration;
 }
