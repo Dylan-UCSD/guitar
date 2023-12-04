@@ -103,7 +103,8 @@ int buttonPin4 = 37;
 
 bool testing = false;
 
-void setup() {
+// Initialize all the servos and buttons
+void setup() { 
   Serial.begin(9600);
   for (int i = 0; i < fretArrLen; i++) {
     fretServos[i].attach(22 + i);
@@ -126,11 +127,13 @@ void setup() {
 }
 
 void loop() {
+  // Read button values
   int buttonState1 = digitalRead(buttonPin1);
   int buttonState2 = digitalRead(buttonPin2);
   int buttonState3 = digitalRead(buttonPin3);
   int buttonState4 = digitalRead(buttonPin4);
 
+  // Testing code
   if (buttonState1 == 1) {
     //pressFret(&S1L, &S1R);
     //playString(3);
@@ -161,17 +164,16 @@ void loop() {
   int nextNoteNum = noteToNum(notes[nextMeasureCount][nextNoteCount]);
 
   if (testing) delay(200);
-  else playNote(noteNum, nextNoteNum, noteDuration); // where the magic happens
+  else playNote(noteNum, nextNoteNum, noteDuration); // Where the magic happens
 
   noteCount++;
   if (noteCount >= measureLen || durations[measureCount][noteCount] == 0) {
     measureCount++;
     if (measureCount >= numMeasures) measureCount = 0;
-
     noteCount = 0;
   }
 
-  Serial.print("Buttonstate1 is ");
+  /*Serial.print("Buttonstate1 is ");
   Serial.println(buttonState1);
   Serial.print("Buttonstate2 is ");
   Serial.println(buttonState2);
@@ -179,27 +181,27 @@ void loop() {
   Serial.println(buttonState3);
   Serial.print("Buttonstate4 is ");
   Serial.println(buttonState4);
-  Serial.println();
+  Serial.println();*/
 
   /*Serial.print("S1L is ");
-    Serial.println(S1L.read());
-    Serial.print("S1R is ");
-    Serial.println(S1R.read());
-    Serial.print("S2L is ");
-    Serial.println(S2L.read());
-    Serial.print("S2R is ");
-    Serial.println(S2R.read());
-    Serial.print("S3L is ");
-    Serial.println(S3L.read());
-    Serial.print("S3R is ");
-    Serial.println(S3R.read());
-    Serial.print("S4L is ");
-    Serial.println(S4L.read());
-    Serial.print("S4R is ");
-    Serial.println(S4R.read());
-    Serial.println();*/
+  Serial.println(S1L.read());
+  Serial.print("S1R is ");
+  Serial.println(S1R.read());
+  Serial.print("S2L is ");
+  Serial.println(S2L.read());
+  Serial.print("S2R is ");
+  Serial.println(S2R.read());
+  Serial.print("S3L is ");
+  Serial.println(S3L.read());
+  Serial.print("S3R is ");
+  Serial.println(S3R.read());
+  Serial.print("S4L is ");
+  Serial.println(S4L.read());
+  Serial.print("S4R is ");
+  Serial.println(S4R.read());
+  Serial.println();*/
 
-  Serial.print("E is ");
+  /*Serial.print("E is ");
   Serial.println(E.read());
   Serial.print("A is ");
   Serial.println(A.read());
@@ -211,9 +213,10 @@ void loop() {
   Serial.println(B.read());
   Serial.print("E2 is ");
   Serial.println(E2.read());
-  Serial.println();
+  Serial.println();*/
 }
 
+// Plays a specified note for duration in milliseconds
 void playNote(int note, int nextNote, int duration) {
   int fret = note % 5;
   int string = note / 5;
@@ -231,16 +234,19 @@ void playNote(int note, int nextNote, int duration) {
   else if (nextFret > 0) pushFret(&fretServos[nextFret * 2 - 2], &fretServos[nextFret * 2 - 1]);
 }
 
+// Pushes a single fret
 void pushFret(Servo *SL, Servo *SR) {
   SL->write(180 - fretAngle);
   SR->write(fretAngle);
 }
 
+// Releases a single fret
 void releaseFret(Servo *SL, Servo *SR) {
   SL->write(180 - fretStartAngle);
   SR->write(fretStartAngle);
 }
 
+// Plays a specified string, given its index
 void playString(int stringIndex) {
   int startAngle = 0;
   Servo string = stringServos[stringIndex];
@@ -252,8 +258,10 @@ void playString(int stringIndex) {
   }
 }
 
-// note must be of the form (Letter, Number) or (Letter, #, Number) ex. E1, G#2 are valid; C2#, A# is not
-// only E1 to G#3 is valid
+// Converts a note from letter form to number form
+// note must be of the form (Letter, Number) or (Letter, #, Number) 
+// ex. A1, G#2 are valid; C2#, A# is not
+// only E1 through G#3 is valid
 int noteToNum(String note) {
   int num = 0;
 
@@ -289,6 +297,7 @@ int noteToNum(String note) {
   return num < 19 ? num : num + 1;
 }
 
+// Converts from a beat time to time in milliseconds
 int durationToTime(int duration) {
   float BPS = BPM / 60.0;
   int fullDuration = 4000 / BPS;
